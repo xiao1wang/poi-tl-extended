@@ -1,10 +1,12 @@
-# poi-tl使用文档
+# poi-tl-extended使用文档
 
-## poi-tl介绍
+## poi-tl-extended介绍
 
-源码地址：https://github.com/Sayi/poi-tl
+该项目是在已有的第三方库(1.7.2)基础上，通过扩展插件的方式对外提供功能。
 
-使用文档地址：[http://deepoove.com/poi-tl/#_2min%E5%85%A5%E9%97%A8](http://deepoove.com/poi-tl/#_2min入门)
+第三方库源码地址：https://github.com/Sayi/poi-tl
+
+第三方库使用文档地址：[http://deepoove.com/poi-tl/#_2min%E5%85%A5%E9%97%A8](http://deepoove.com/poi-tl/#_2min入门)
 
 poi-tl的优缺点
 
@@ -18,114 +20,130 @@ poi-tl的优缺点
 
 ## 扩展程序
 
-扩展的功能：表格和列表数据的更新。图表（目前仅提供二维柱状图、条形图、折线图、饼图、面积图，其他图形poi的API还未提供）和目录（还需要优化）的生成
+扩展的功能：表格和列表数据的更新。图表（目前仅提供二维柱状图、条形图、折线图、饼图、面积图、环形图）和目录（不是很完美）的生成
 
- 
+### 引入项目
 
-### 图表使用方式：
+maven方式
+
+```xml
+<dependency>
+    <groupId>com.github.xiao1wang.poitlextended</groupId>
+    <artifactId>poi-tl-extended</artifactId>
+    <version>1.0.0</version>
+</dependency>
+```
+
+### 增加的标签
+
+#### 图表
+
+```
+图表标签以&开始：{{&var}} 
+```
+
+> 注意：书写的值，需要和模板提供的图表处于同一行
 
 Word中图表的样式
 
-![img](./images/clip_image002.jpg)
+![1584805404102](./images/1584805404102.png)
 
-代码使用：
+```json
+                                    数据模型
+{
+	"chartList": [{❶
+		"chartType": "DOUGHNUT",❷
+		"endPosition": 1,❸
+		"startPosition": 1❹
+	}],
+	"colArr": [],❺
+	"rowList": [❻
+		["僵尸软件", 12],
+		["Web攻击", 13],
+		["木马程序", 15],
+		["蠕虫攻击", 16]
+	],
+	"title": ""❼
+}
+```
 
- ```java
-public static void main(String[] args) throws Exception {
-        // 静态数据
-        Integer index = 1;
-        String title = "个人金额";
-        String[] titleArr = {"姓名","销售额"};
-        List<Object[]> list = new ArrayList<>();
-        list.add(new Object[]{"僵尸软件",12});
-        list.add(new Object[]{"Web攻击",13});
-        list.add(new Object[]{"木马程序",15});
-        list.add(new Object[]{"蠕虫攻击",16});
-        List<ChartTypeData> chartList = new ArrayList<>();
-        chartList.add(new ChartTypeData(ChartType.PIE,1,titleArr.length - 1));
-        ChartRenderData firstChart = new ChartRenderData(index, null, titleArr, list, chartList);
-        Map<String, Object> map = new HashMap<>();
-        map.put("firstChart", firstChart);
+| ❶    | 图表中涉及到的多种图表集合            |
+| ---- | ------------------------------------- |
+| ❷    | 单个图表对应的形状                    |
+| ❸    | 单个图表的数据，是从excel的第几列开始 |
+| ❹    | 单个图表的数据，是从excel的第几列结束 |
+| ❺    | excel中的表头                         |
+| ❻    | excel中对应的数据行                   |
+| ❼    | 图表的标题                            |
 
-        Configure.ConfigureBuilder builder = Configure.newBuilder();
-        // ‘%’自定义的特殊符号，标记对应的变量为表格数据
-        builder.addPlugin('%', new ChartRenderPolicy());
+```java
+								代码格式
+								
+String title = "个人金额";
+String[] titleArr = {"姓名","销售额"};
+List<Object[]> list = new ArrayList<>();
+list.add(new Object[]{"僵尸软件",12});
+list.add(new Object[]{"Web攻击",13});
+list.add(new Object[]{"木马程序",15});
+list.add(new Object[]{"蠕虫攻击",16});
+List<ChartTypeData> chartList = new ArrayList<>();
+chartList.add(new ChartTypeData(ChartType.DOUGHNUT,1,1));
+ChartRenderData firstchart = new ChartRenderData(null, null, list, chartList);
+map.put("firstchart", firstchart);
+```
 
-        XWPFTemplate template = XWPFTemplate.compile("D:\\template_chart.docx", builder.build());
-        template.render(map);
-        FileOutputStream fos = new FileOutputStream("D:\\my_chart.docx");
-        template.write(fos);
-        fos.flush();
-        fos.close();
-        template.close();
-    }
- ```
+#### 表格
 
+```
+表格标签以$开始：{{$var}} 
+```
 
-
-### 表格使用方式：
+> 注意：书写的值，需要放在表格中的某一个单元格内，并且需要至少保留一行有数据的内容，底层需要更加这一行的格式，生成其余的样式
 
 Word中表格的样式
 
-![img](./images/clip_image004.jpg)
-
-代码使用：
-
- ```java
-public static void main(String[] args) throws Exception {
-        Map<String,Object> dataMap = new HashMap<>();
-        List<Object[]> list = new ArrayList<>();
-        list.add(new String[]{"张三", "博士生"});
-        list.add(new String[]{"李四", "硕士"});
-        list.add(new String[]{"王五", "本科"});
-        dataMap.put("table", new TableRenderData(1,list));
-
-        Configure.ConfigureBuilder builder = Configure.newBuilder();
-        // ‘&’自定义的特殊符号，标记对应的变量为表格数据
-        builder.addPlugin('&', new TableRenderPolicy());
-
-        XWPFTemplate template = XWPFTemplate.compile("D:\\template_table.docx", builder.build());
-        template.render(dataMap);
-        FileOutputStream fos = new FileOutputStream("D:\\my_table.docx");
-        template.write(fos);
-        fos.flush();
-        fos.close();
-        template.close();
-    }
- ```
+![1584808665064](./images/1584808665064.png)
 
 
 
-### 列表使用方式：
+```json
+                                    数据模型
+{
+	"rowList": [❶
+		["张三", "博士生"],
+		["李四", "硕士"],
+		["王五", "本科"]
+	],
+	"start": 1❷
+}
+```
+
+| ❶    | 列表中数据行的集合 |
+| ---- | ------------------ |
+| ❷    | 数据行从第几行开始 |
+
+```java
+								代码格式
+								
+List<Object[]> list = new ArrayList<>();
+list.add(new String[]{"张三", "博士生"});
+list.add(new String[]{"李四", "硕士"});
+list.add(new String[]{"王五", "本科"});
+dataMap.put("table", new TableRenderData(1,list));
+```
+#### 列表
+
+```
+列表标签以%开始：{{%var}} 
+```
+
+> 注意：书写的值，需要放在第一个列表内
 
 Word中列表的样式
 
-![1583750671875](./images/1583750671875.png)
+![1584809154946](./images/1584809154946.png)
 
-代码使用：
-
- ```java
-public static void main(String[] args) throws Exception {
-        Map<String,Object> dataMap = new HashMap<>();
-        dataMap.put("list", Arrays.asList("mmm","测试数据","测试数据1","测试数据2"));
-
-        Configure.ConfigureBuilder builder = Configure.newBuilder();
-        // ‘%’自定义的特殊符号，标记对应的变量为列表数据
-        builder.addPlugin('%', new ListRenderPolicy());
-
-        XWPFTemplate template = XWPFTemplate.compile("D:\\template_list.docx", builder.build());
-        template.render(dataMap);
-        FileOutputStream fos = new FileOutputStream("D:\\my_list.docx");
-        template.write(fos);
-        fos.flush();
-        fos.close();
-        template.close();
-    }
- ```
-
-
-
-### 目录使用方式：
+#### 目录
 
 由于目录的生成方式特别，因此提供专门的工具类，用于在文档其他数据生成后，单独调用。目前由于目录自动生成后，导致整体的页数发生变化，需要通过手动设置固定的值来确定总页数
 
@@ -147,3 +165,26 @@ public static void main(String[] args) throws Exception {
     }
 ```
 
+## word使用Sping表达式
+
+```
+{{name}}❶
+{{name.toUpperCase()}} ❷
+{{$['table']}}❸
+```
+| ❶❷   | 前两种适用Bean的模式，例如模板渲染的是一个对象template.render(Bean); |
+| ---- | ------------------------------------------------------------ |
+| ❸    | 最后一种Map的模式，例如模板渲染的是一个对象template.render(map); |
+
+> 默认Spring表达式，需要用户自己判定变量是否为空，错误处理会遵循SpringEL的规则抛出异常，为了不用再输出数据时，增加用户判断，提供了另一种标签处理机制。使用方法如下：
+>
+> ```java
+> ConfigureBuilder builder = Configure.newBuilder();
+> // 采用spring El语法，针对无法计算的值，直接输出为null
+> builder.setElMode(Configure.ELMode.SIMPLE_SPEL_MODE);
+> // 得到模板文件
+> XWPFTemplate template = XWPFTemplate.compile(
+> ChartTest.class.getClassLoader().getResource("templates/template_table.docx").getPath(), builder.build());
+> ```
+>
+> 
