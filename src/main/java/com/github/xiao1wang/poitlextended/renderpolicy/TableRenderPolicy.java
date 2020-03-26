@@ -51,6 +51,10 @@ public class TableRenderPolicy extends AbstractRenderPolicy<TableRenderData> {
             XWPFTableCell currentCell = (XWPFTableCell) ((XWPFParagraph) run.getParent()).getBody();
             XWPFTable table = currentCell.getTableRow().getTable();
             if (data == null) {
+                // 默认删除从第二列的数据
+                // 删除之前的数据
+                while (table.removeRow(1))
+                    ;
                 return;
             }
             List<Object[]> list = data.getRowList();
@@ -90,6 +94,11 @@ public class TableRenderPolicy extends AbstractRenderPolicy<TableRenderData> {
                         }
                     }
                 }
+            } else {
+                // 默认删除从第二列的数据
+                // 删除之前的数据
+                while (table.removeRow(1))
+                    ;
             }
         } catch (Exception e) {
             throw new RenderException("dynamic table error:" + e.getMessage(), e);

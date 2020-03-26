@@ -147,12 +147,9 @@ public class ChartRenderPolicy extends AbstractRenderPolicy<ChartRenderData> {
 
                     // 基于传递的参数，得到对应图表的信息
                     CTPlotArea plotArea = ctChart.getPlotArea();
-
-                    //先清空改plotArea下的所有图表数据
-                    //clearChart(plotArea);
-
-                    if (chartRenderData == null) {
-                        // 针对数据为null的情况，应该将图表删除掉，还未实现
+                    if (chartRenderData == null || chartList == null || chartList.size() == 0) {
+                        //先清空改plotArea下的所有图表数据
+                        clearChart(plotArea);
                     }
                     if (chartList != null && chartList.size() > 0) {
                         for (ChartTypeData chartTypeData : chartList) {
@@ -263,7 +260,6 @@ public class ChartRenderPolicy extends AbstractRenderPolicy<ChartRenderData> {
                                             }
                                         }
 
-
                                         int firstRow = titleArr != null ? 1 : 0;
                                         int lastRow = titleArr != null ? list.size() : list.size() - 1;
                                         // 添加该系列下的种类对应x轴的数据范围
@@ -291,6 +287,8 @@ public class ChartRenderPolicy extends AbstractRenderPolicy<ChartRenderData> {
                                         }
                                     }
                                 }
+                            } else {
+                                clearChart(plotArea);
                             }
                         }
                     }

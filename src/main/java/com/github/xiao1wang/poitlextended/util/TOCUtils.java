@@ -73,62 +73,71 @@ public class TOCUtils {
             // 更新页码
             for (XWPFParagraph par : paragraphList) {
                 String title = par.getText();
+                CTHyperlink ctHyperlink = par.getCTP().getHyperlinkList().get(0);
+                List<CTR> rList = null;
+                // 判断文字后面是否还有数字，如果没有数据，说明是另外一种结构
+                String[] arr = title.split("\\d+");
+                title = arr[arr.length - 1];
                 // 得到当前文本最后一个数字
                 Matcher matcher = pattern.matcher(title);
                 int size = -1;
-                while (matcher.find()) {
+                if (matcher.find()) {
                     size = Integer.parseInt(matcher.group());
+                    rList = ctHyperlink.getRList();
+                } else {
+                    rList = ctHyperlink.getFldSimpleList().get(0).getRList();
                 }
-                boolean find = false;
-                int pageNo = -1;
-                Iterator<Integer> pageIte = pageMap.keySet().iterator();
-                while (pageIte.hasNext() && !find) {
-                    Integer page = pageIte.next();
-                    Set<String> titleList = pageMap.get(page);
-                    if (titleList != null && titleList.size() > 0) {
-                        Iterator<String> titleIte = titleList.iterator();
-                        while (titleIte.hasNext() && !find) {
-                            String content = titleIte.next();
-                            if (title.indexOf(content) != -1 && size > -1) {
-                                List<CTR> rList = par.getCTP().getHyperlinkList().get(0).getRList();
-                                if (rList != null && rList.size() > 0) {
-                                    // 得到最后一个r中只包含数据的位置
-                                    int rIndex = -1;
-                                    for (int i = 0; i < rList.size(); i++) {
-                                        CTR r = rList.get(i);
-                                        List<CTText> tList = r.getTList();
-                                        if (tList != null && tList.size() > 0) {
-                                            String val = ((CTTextImpl) tList.get(0)).getStringValue();
-                                            if (val != null && StringUtils.isNumeric(val)) {
-                                                rIndex = i;
+                if (rList != null && rList.size() > 0) {
+                    boolean find = false;
+                    int pageNo = -1;
+                    Iterator<Integer> pageIte = pageMap.keySet().iterator();
+                    while (pageIte.hasNext() && !find) {
+                        Integer page = pageIte.next();
+                        Set<String> titleList = pageMap.get(page);
+                        if (titleList != null && titleList.size() > 0) {
+                            Iterator<String> titleIte = titleList.iterator();
+                            while (titleIte.hasNext() && !find) {
+                                String content = titleIte.next();
+                                if (title.indexOf(content) != -1) {
+                                    if (rList != null && rList.size() > 0) {
+                                        // 得到最后一个r中只包含数据的位置
+                                        int rIndex = -1;
+                                        for (int i = 0; i < rList.size(); i++) {
+                                            CTR r = rList.get(i);
+                                            List<CTText> tList = r.getTList();
+                                            if (tList != null && tList.size() > 0) {
+                                                String val = ((CTTextImpl) tList.get(0)).getStringValue();
+                                                if (val != null && StringUtils.isNumeric(val)) {
+                                                    rIndex = i;
+                                                }
                                             }
                                         }
-                                    }
-                                    if (rIndex != -1) {
-                                        find = true;
-                                        pageNo = page;
-                                        List<CTText> tList = rList.get(rIndex).getTList();
-                                        if (tList != null && tList.size() > 0) {
-                                            tList.get(0).setStringValue(page + "");
+                                        if (rIndex != -1) {
+                                            find = true;
+                                            pageNo = page;
+                                            List<CTText> tList = rList.get(rIndex).getTList();
+                                            if (tList != null && tList.size() > 0) {
+                                                tList.get(0).setStringValue(page + "");
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
                     }
-                }
-                if (find) {
-                    // 为了防止有相同标题的文字
-                    Set<String> list = pageMap.get(pageNo);
-                    Set<String> newSet = new HashSet<>();
-                    Iterator<String> titleIte = list.iterator();
-                    while (titleIte.hasNext()) {
-                        String currentTitle = titleIte.next();
-                        if (title.indexOf(currentTitle) == -1) {
-                            newSet.add(currentTitle);
+                    if (find) {
+                        // 为了防止有相同标题的文字
+                        Set<String> list = pageMap.get(pageNo);
+                        Set<String> newSet = new HashSet<>();
+                        Iterator<String> titleIte = list.iterator();
+                        while (titleIte.hasNext()) {
+                            String currentTitle = titleIte.next();
+                            if (title.indexOf(currentTitle) == -1) {
+                                newSet.add(currentTitle);
+                            }
                         }
+                        pageMap.put(pageNo, newSet);
                     }
-                    pageMap.put(pageNo, newSet);
                 }
             }
         }
