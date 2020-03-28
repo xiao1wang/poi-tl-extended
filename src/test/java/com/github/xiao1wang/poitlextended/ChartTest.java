@@ -31,6 +31,7 @@ public class ChartTest {
         ChartRenderData firstChart = new ChartRenderData(null, titleArr, list, chartList);
         Map<String, Object> map = new HashMap<>();
         map.put("firstChart", firstChart);
+        //map.put("firstChart", null);
 
         // 得到模板文件
         XWPFTemplate template = XWPFTemplate.compile(

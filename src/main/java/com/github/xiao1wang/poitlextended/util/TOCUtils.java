@@ -2,7 +2,10 @@ package com.github.xiao1wang.poitlextended.util;
 
 import com.deepoove.poi.xwpf.NiceXWPFDocument;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.util.POILogFactory;
+import org.apache.poi.util.POILogger;
 import org.apache.poi.xwpf.usermodel.IBodyElement;
+import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.apache.poi.xwpf.usermodel.XWPFTable;
 import org.apache.poi.xwpf.usermodel.XWPFTableCell;
@@ -10,6 +13,7 @@ import org.apache.poi.xwpf.usermodel.XWPFTableRow;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTEmpty;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTHyperlink;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTR;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTSimpleField;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTText;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.impl.CTTextImpl;
 
@@ -28,15 +32,17 @@ import java.util.regex.Pattern;
  */
 public class TOCUtils {
 
-    /**
-     * 更新目录
-     *
-     * @param doc        当前文档对象
-     * @param maxLevel   需要展示标题的等级数
-     * @param fromPageNo 记录文章页数的开始位置，由于目录的特殊性，没有分页符，只能通过这个参数调整了
-     */
-    public static void updateItem2TOC(NiceXWPFDocument doc, Integer maxLevel, int fromPageNo) {
-        List<IBodyElement> bodyElementList = doc.getBodyElements();
+	private static final POILogger LOG = POILogFactory.getLogger(XWPFDocument.class);
+
+	/**
+	 * 更新目录
+	 *
+	 * @param doc        当前文档对象
+	 * @param maxLevel   需要展示标题的等级数
+	 * @param fromPageNo 记录文章页数的开始位置，由于目录的特殊性，没有分页符，只能通过这个参数调整了
+	 */
+	public static void updateItem2TOC(NiceXWPFDocument doc, Integer maxLevel, int fromPageNo) {
+		List<IBodyElement> bodyElementList = doc.getBodyElements();
         if (bodyElementList != null && bodyElementList.size() > 0) {
             // 存放word文档，每页对应的标题名称
             Map<Integer, Set<String>> pageMap = new TreeMap<>();
@@ -72,29 +78,32 @@ public class TOCUtils {
             Pattern pattern = Pattern.compile("\\d+");
             // 更新页码
             for (XWPFParagraph par : paragraphList) {
-                String title = par.getText();
-                CTHyperlink ctHyperlink = par.getCTP().getHyperlinkList().get(0);
-                List<CTR> rList = null;
-                // 判断文字后面是否还有数字，如果没有数据，说明是另外一种结构
-                String[] arr = title.split("\\d+");
-                title = arr[arr.length - 1];
-                // 得到当前文本最后一个数字
-                Matcher matcher = pattern.matcher(title);
-                int size = -1;
-                if (matcher.find()) {
-                    size = Integer.parseInt(matcher.group());
-                    rList = ctHyperlink.getRList();
-                } else {
-                    rList = ctHyperlink.getFldSimpleList().get(0).getRList();
-                }
-                if (rList != null && rList.size() > 0) {
-                    boolean find = false;
-                    int pageNo = -1;
-                    Iterator<Integer> pageIte = pageMap.keySet().iterator();
-                    while (pageIte.hasNext() && !find) {
-                        Integer page = pageIte.next();
-                        Set<String> titleList = pageMap.get(page);
-                        if (titleList != null && titleList.size() > 0) {
+	            String title = par.getParagraphText();
+	            CTHyperlink ctHyperlink = par.getCTP().getHyperlinkList().get(0);
+	            List<CTR> rList = null;
+	            // 判断文字后面是否还有数字，如果没有数据，说明是另外一种结构
+	            // 得到当前文本最后一个数字
+	            Matcher matcher = pattern.matcher(title);
+	            int size = -1;
+	            while (matcher.find()) {
+		            size = Integer.parseInt(matcher.group());
+	            }
+	            if (size == -1) {
+		            List<CTSimpleField> list = ctHyperlink.getFldSimpleList();
+		            if (list != null && list.size() > 0) {
+			            rList = list.get(0).getRList();
+		            }
+	            } else {
+		            rList = ctHyperlink.getRList();
+	            }
+	            if (rList != null && rList.size() > 0) {
+		            boolean find = false;
+		            int pageNo = -1;
+		            Iterator<Integer> pageIte = pageMap.keySet().iterator();
+		            while (pageIte.hasNext() && !find) {
+			            Integer page = pageIte.next();
+			            Set<String> titleList = pageMap.get(page);
+			            if (titleList != null && titleList.size() > 0) {
                             Iterator<String> titleIte = titleList.iterator();
                             while (titleIte.hasNext() && !find) {
                                 String content = titleIte.next();
@@ -170,20 +179,26 @@ public class TOCUtils {
                     List<XWPFTableRow> tableList = table.getRows();
                     if (tableList != null && tableList.size() > 0) {
                         for (XWPFTableRow row : tableList) {
-                            List<XWPFTableCell> cellList = row.getTableCells();
-                            if (cellList != null && cellList.size() > 0) {
-                                for (XWPFTableCell cell : cellList) {
-                                    List<XWPFParagraph> paragraphList = cell.getParagraphs();
-                                    if (paragraphList != null && paragraphList.size() > 0) {
-                                        for (XWPFParagraph par : paragraphList) {
-                                            List<CTR> ctrlist = par.getCTP().getRList();//获取<w:p>标签下的<w:r>list
-                                            for (int j = 0; j < ctrlist.size(); j++) {  //遍历r
-                                                CTR r = ctrlist.get(j);
-                                                List<CTEmpty> breaklist = r.getLastRenderedPageBreakList();//判断是否存在此标签
-                                                if (breaklist.size() > 0) {
-                                                    page++; //页数添加
-                                                }
-                                            }
+	                        // 同一表格下，可能有多个lastRenderedPageBreak
+	                        boolean findBreakFlag = false;
+	                        List<XWPFTableCell> cellList = row.getTableCells();
+	                        if (cellList != null && cellList.size() > 0) {
+		                        for (int m = 0; m < cellList.size() && !findBreakFlag; m++) {
+			                        XWPFTableCell cell = cellList.get(m);
+			                        List<XWPFParagraph> paragraphList = cell.getParagraphs();
+			                        if (paragraphList != null && paragraphList.size() > 0) {
+				                        for (int n = 0; n < paragraphList.size() && !findBreakFlag; n++) {
+					                        XWPFParagraph par = paragraphList.get(n);
+					                        List<CTR> ctrlist = par.getCTP().getRList();//获取<w:p>标签下的<w:r>list
+					                        for (int j = 0; j < ctrlist.size() && !findBreakFlag; j++) {  //遍历r
+						                        CTR r = ctrlist.get(j);
+						                        List<CTEmpty> breaklist = r.getLastRenderedPageBreakList();//判断是否存在此标签
+						                        if (breaklist.size() > 0) {
+							                        findBreakFlag = true;
+							                        page++; //页数添加
+							                        break;
+						                        }
+					                        }
                                         }
                                     }
                                 }
@@ -199,4 +214,5 @@ public class TOCUtils {
         }
         return page;
     }
+
 }
