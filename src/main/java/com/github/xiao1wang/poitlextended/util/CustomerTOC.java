@@ -51,7 +51,7 @@ public class CustomerTOC {
 	 * @param contentFlag
 	 * @param document
 	 */
-	public static void automaticGenerateTOC(int maxLevel, String contentFlag, XWPFDocument document) {
+	public static void automaticGenerateTOC(int maxLevel, String contentFlag, XWPFDocument document, int fromPage) {
 		XWPFParagraph p = null;
 		boolean flag = false;
 		for (int i = 0; i < document.getParagraphs().size(); i++) {
@@ -100,7 +100,7 @@ public class CustomerTOC {
 						String title = paragraph.getText();
 						int pageBreakNum = pageBreak(paragraph, title, bodyElementList);
 						// 前面多少页不算
-						pageBreakNum = pageBreakNum - 2;
+						pageBreakNum = pageBreakNum - fromPage;
 						XmlCursor cursor = currentP.getCTP().newCursor();
 						XWPFParagraph newPara = document.insertNewParagraph(cursor);
 						addRow(maxLevel, chapterArrStr, j, newPara, level, paragraph.getText(), pageBreakNum, bookmarkList.get(0).getName());

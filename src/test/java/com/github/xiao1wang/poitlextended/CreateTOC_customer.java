@@ -17,8 +17,7 @@ public class CreateTOC_customer {
 	public static void main(String[] args) throws Exception {
 		FileInputStream fileInputStream = new FileInputStream(ChartTest.class.getClassLoader().getResource("templates/test_toc.docx").getPath());
 		XWPFDocument doc = new XWPFDocument(fileInputStream);
-		int maxLevel = 3;
-		CustomerTOC.automaticGenerateTOC(maxLevel, "toc", doc);
+		CustomerTOC.automaticGenerateTOC(3, "toc", doc, 2);
 		OutputStream out = new FileOutputStream("d:\\my_doc_customer.docx");
 		doc.write(out);
 		out.close();

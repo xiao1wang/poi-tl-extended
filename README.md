@@ -2,7 +2,7 @@
 
 ## poi-tl-extended介绍
 
-该项目是在已有的第三方库(1.7.2)基础上，通过扩展插件的方式对外提供功能。
+该项目是在已有的第三方库(1.7.2)基础上，在原有代码的基础上增加扩展一些功能。
 
 第三方库源码地址：https://github.com/Sayi/poi-tl
 
@@ -145,25 +145,40 @@ Word中列表的样式
 
 #### 目录
 
-由于目录的生成方式特别，因此提供专门的工具类，用于在文档其他数据生成后，单独调用。目前由于目录自动生成后，导致整体的页数发生变化，需要通过手动设置固定的值来确定总页数
+由于目录的生成方式特别，因此提供专门的工具类，用于在文档其他数据生成后，单独调用。
+
+生成目录的方式：
+##### 自动方式
 
 代码如下：
 
 ```java
 public static void main(String[] args) throws Exception {
-        Map<String, Object> map = new HashMap<>();
-        XWPFTemplate template = XWPFTemplate.compile("D:\\目录.docx").render(map);
-        FileOutputStream fos = new FileOutputStream("D:\\my_目录.docx");
-
-        // 需要在全部数据生成完后，再更新目录，这会牵扯到文档的整体页数变化，只能通过固定数值调整
-        NiceXWPFDocument doc = template.getXWPFDocument();
-        TOCUtils.updateItem2TOC(doc,4, 2);
-        template.write(fos);
-        fos.flush();
-        fos.close();
-        template.close();
+        CustomerTOC.automaticGenerateTOC(3, "toc", doc,2);
     }
 ```
+解释：
+3     代表文档的标题级别
+"toc" 代表文档中需要替换为目录的占位符  
+doc   代表当前文档
+2     代表从第几页开始计算页数
+
+> 不足之处：读取文档在前，由于设置数据导致当前文档的结构发生改变，但是程序动态识别对应的分页符。导致还是按照之前的文档结构生成
+
+##### 手动方式
+
+代码如下：
+
+```java
+public static void main(String[] args) throws Exception {
+        CustomerTOC.handGenerateTOC(doc, "toc");
+    }
+```
+解释：
+doc   代表当前文档
+"toc" 代表文档中需要替换为目录的占位符
+
+> 不足之处：第一次打开文档时，提示用户需要更新文档域，需要选择“是”，才能生成文档。
 
 ## word使用Sping表达式
 

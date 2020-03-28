@@ -25,8 +25,7 @@ public class UpdateTOCTest {
 
         template.render(map);
         NiceXWPFDocument doc = template.getXWPFDocument();
-        int maxLevel = 3;
-        CustomerTOC.automaticGenerateTOC(maxLevel, "toc", doc);
+        CustomerTOC.automaticGenerateTOC(3, "toc", doc, 2);
         OutputStream out = new FileOutputStream("d:\\my_doc_customer.docx");
         doc.write(out);
         out.close();
