@@ -113,7 +113,7 @@ public class ChartRenderPolicy extends AbstractRenderPolicy<ChartRenderData> {
                             // 将额外的标题删除掉
                             int length = rList.size();
                             for (int i = 1; i < length; i++) {
-                                rList.remove(i);
+                                rList.remove(1);
                             }
                         }
                     }

@@ -46,21 +46,30 @@ public class ManyChartTest {
         ChartRenderData secondchart = new ChartRenderData(null, null, secondList, secondChartList);
         map.put("secondchart", secondchart);
 
-        String[] threeTitleArr = {"", "数量"};
+        String[] threeTitleArr = { "", "数量" };
         List<Object[]> threeList = new ArrayList<>();
-        threeList.add(new Object[]{"僵尸软件", 12});
-        threeList.add(new Object[]{"Web攻击", 13});
-        threeList.add(new Object[]{"木马程序", 15});
-        threeList.add(new Object[]{"蠕虫攻击", 16});
+        threeList.add(new Object[] { "僵尸软件", 12 });
+        threeList.add(new Object[] { "Web攻击", 13 });
+        threeList.add(new Object[] { "木马程序", 15 });
+        threeList.add(new Object[] { "蠕虫攻击", 16 });
         List<ChartTypeData> threeChartList = new ArrayList<>();
         threeChartList.add(new ChartTypeData(ChartType.BAR, 1, 1));
-        ChartRenderData threechart = new ChartRenderData(null, threeTitleArr, threeList, threeChartList);
+        ChartRenderData threechart = new ChartRenderData("测试", threeTitleArr, threeList, threeChartList);
         map.put("threechart", threechart);
 
-        // 得到模板文件
-        XWPFTemplate template = XWPFTemplate.compile(
-                ManyChartTest.class.getClassLoader().getResource("templates/many_chart.docx").getPath());
+        String[] fourTitleArr = { "", "数量" };
+        List<Object[]> fourList = new ArrayList<>();
+        fourList.add(new Object[] { "僵尸软件", 12 });
+        fourList.add(new Object[] { "Web攻击", 13 });
+        fourList.add(new Object[] { "木马程序", 15 });
+        fourList.add(new Object[] { "蠕虫攻击", 16 });
+        List<ChartTypeData> foutChartList = new ArrayList<>();
+        foutChartList.add(new ChartTypeData(ChartType.DOUGHNUT, 1, 1));
+        ChartRenderData fourchart = new ChartRenderData("测试", fourTitleArr, fourList, foutChartList);
+        map.put("fourchart", fourchart);
 
+        // 得到模板文件
+        XWPFTemplate template = XWPFTemplate.compile(ManyChartTest.class.getClassLoader().getResource("templates/many_chart.docx").getPath());
 
         template.render(map);
 
