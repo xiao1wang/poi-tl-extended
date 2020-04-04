@@ -88,8 +88,9 @@ public class TableRenderPolicy extends AbstractRenderPolicy<TableRenderData> {
                         List<CTR> rList = ctP.getRList();
                         if (rList != null && rList.size() > 0) {
                             rList.get(0).getTArray(0).setStringValue(arr[k].toString());
-                            for (int j = 1; j < rList.size(); j++) {
-                                rList.remove(j);
+                            int total = rList.size();
+                            for (int j = 1; j < total; j++) {
+                                rList.remove(1);
                             }
                         }
                     }

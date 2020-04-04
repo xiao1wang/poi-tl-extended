@@ -61,8 +61,9 @@ public class ListRenderPolicy extends AbstractRenderPolicy<List<String>> {
                     List<CTR> rList = newCtp.getRList();
                     if (rList != null && rList.size() > 0) {
                         rList.get(0).getTArray(0).setStringValue(list.get(i));
-                        for (int j = 1; j < rList.size(); j++) {
-                            rList.remove(j);
+                        int total = rList.size();
+                        for (int j = 1; j < total; j++) {
+                            rList.remove(1);
                         }
                     }
                 }
