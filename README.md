@@ -30,7 +30,7 @@ maven方式
 <dependency>
     <groupId>com.github.xiao1wang.poitlextended</groupId>
     <artifactId>poi-tl-extended</artifactId>
-    <version>1.0.5</version>
+    <version>1.0.6</version>
 </dependency>
 ```
 
