@@ -103,7 +103,12 @@ public class CustomerTOC {
 						pageBreakNum = pageBreakNum - fromPage;
 						XmlCursor cursor = currentP.getCTP().newCursor();
 						XWPFParagraph newPara = document.insertNewParagraph(cursor);
-						addRow(maxLevel, chapterArrStr, j, newPara, level, paragraph.getText(), pageBreakNum, bookmarkList.get(0).getName());
+						// 有可能bookMarkStart与标题不在同一段落中
+						String bookName = "";
+						if(bookmarkList != null && bookmarkList.size() > 0) {
+							bookName = bookmarkList.get(0).getName();
+						}
+						addRow(maxLevel, chapterArrStr, j, newPara, level, paragraph.getText(), pageBreakNum, bookName);
 					}
 				}
 			}
