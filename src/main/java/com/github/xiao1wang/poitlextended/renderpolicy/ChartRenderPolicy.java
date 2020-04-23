@@ -39,7 +39,11 @@ import org.openxmlformats.schemas.drawingml.x2006.chart.CTStrVal;
 import org.openxmlformats.schemas.drawingml.x2006.chart.CTTitle;
 import org.openxmlformats.schemas.drawingml.x2006.chart.CTUnsignedInt;
 import org.openxmlformats.schemas.drawingml.x2006.main.CTRegularTextRun;
+import org.openxmlformats.schemas.drawingml.x2006.main.CTSchemeColor;
+import org.openxmlformats.schemas.drawingml.x2006.main.CTShapeProperties;
+import org.openxmlformats.schemas.drawingml.x2006.main.CTSolidColorFillProperties;
 import org.openxmlformats.schemas.drawingml.x2006.main.CTTextParagraph;
+import org.openxmlformats.schemas.drawingml.x2006.main.STSchemeColorVal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -161,7 +165,9 @@ public class ChartRenderPolicy extends AbstractRenderPolicy<ChartRenderData> {
                                     // 需要保留第一个图例的样式
                                     XmlObject chartXml = null;
                                     for (int i = chartTypeData.getStartPosition(); i <= chartTypeData.getEndPosition(); i++) {
+                                        String schemeType = null;
                                         CTSerTx serTx = null;
+                                        CTShapeProperties sppr = null;
                                         CTAxDataSource catDataSource = null;
                                         CTNumDataSource valDataSource = null;
                                         // 创建一个新的系列,并添加该系列的idx，同时得到对应的变量数据
@@ -177,9 +183,13 @@ public class ChartRenderPolicy extends AbstractRenderPolicy<ChartRenderData> {
                                                 CTUnsignedInt barIdx = ctBarSer.getIdx();
                                                 barIdx.setVal(i - 1);
                                                 ctBarSer.setIdx(barIdx);
+                                                CTUnsignedInt order = ctBarSer.getOrder();
+                                                order.setVal(i - 1);
+                                                ctBarSer.setOrder(order);
                                                 serTx = ctBarSer.getTx();
                                                 catDataSource = ctBarSer.getCat();
                                                 valDataSource = ctBarSer.getVal();
+                                                sppr = ctBarSer.getSpPr();
                                                 break;
                                             case LINE:
                                                 CTLineChart lineChart = plotArea.getLineChartArray(0);
@@ -192,9 +202,13 @@ public class ChartRenderPolicy extends AbstractRenderPolicy<ChartRenderData> {
                                                 CTUnsignedInt lineIdx = ctLineSer.getIdx();
                                                 lineIdx.setVal(i - 1);
                                                 ctLineSer.setIdx(lineIdx);
+                                                order = ctLineSer.getOrder();
+                                                order.setVal(i - 1);
+                                                ctLineSer.setOrder(order);
                                                 serTx = ctLineSer.getTx();
                                                 catDataSource = ctLineSer.getCat();
                                                 valDataSource = ctLineSer.getVal();
+                                                sppr = ctLineSer.getSpPr();
                                                 break;
                                             case PIE:
                                                 CTPieChart pieChart = plotArea.getPieChartArray(0);
@@ -207,9 +221,13 @@ public class ChartRenderPolicy extends AbstractRenderPolicy<ChartRenderData> {
                                                 CTUnsignedInt pieIdx = ctPieSer.getIdx();
                                                 pieIdx.setVal(i - 1);
                                                 ctPieSer.setIdx(pieIdx);
+                                                order = ctPieSer.getOrder();
+                                                order.setVal(i - 1);
+                                                ctPieSer.setOrder(order);
                                                 serTx = ctPieSer.getTx();
                                                 catDataSource = ctPieSer.getCat();
                                                 valDataSource = ctPieSer.getVal();
+                                                sppr = ctPieSer.getSpPr();
                                                 break;
                                             case AREA:
                                                 CTAreaChart areaChart = plotArea.getAreaChartArray(0);
@@ -222,9 +240,13 @@ public class ChartRenderPolicy extends AbstractRenderPolicy<ChartRenderData> {
                                                 CTUnsignedInt areaIdx = ctAreaSer.getIdx();
                                                 areaIdx.setVal(i - 1);
                                                 ctAreaSer.setIdx(areaIdx);
+                                                order = ctAreaSer.getOrder();
+                                                order.setVal(i - 1);
+                                                ctAreaSer.setOrder(order);
                                                 serTx = ctAreaSer.getTx();
                                                 catDataSource = ctAreaSer.getCat();
                                                 valDataSource = ctAreaSer.getVal();
+                                                sppr = ctAreaSer.getSpPr();
                                                 break;
                                             case DOUGHNUT:
                                                 CTDoughnutChart doughnutChart = plotArea.getDoughnutChartArray(0);
@@ -237,9 +259,13 @@ public class ChartRenderPolicy extends AbstractRenderPolicy<ChartRenderData> {
                                                 CTUnsignedInt doughnutIdx = ctDoughnutSer.getIdx();
                                                 doughnutIdx.setVal(i - 1);
                                                 ctDoughnutSer.setIdx(doughnutIdx);
+                                                order = ctDoughnutSer.getOrder();
+                                                order.setVal(i - 1);
+                                                ctDoughnutSer.setOrder(order);
                                                 serTx = ctDoughnutSer.getTx();
                                                 catDataSource = ctDoughnutSer.getCat();
                                                 valDataSource = ctDoughnutSer.getVal();
+                                                sppr = ctDoughnutSer.getSpPr();
                                                 break;
                                         }
                                         // 添加该系列的名称
@@ -259,7 +285,19 @@ public class ChartRenderPolicy extends AbstractRenderPolicy<ChartRenderData> {
                                                 serTx.setStrRef(null);
                                             }
                                         }
-
+                                        // 设置spPr
+                                        if(sppr != null) {
+                                            CTSolidColorFillProperties solidFill = sppr.getSolidFill();
+                                            if(solidFill != null) {
+                                                CTSchemeColor schemeClr = solidFill.getSchemeClr();
+                                                if(schemeClr != null) {
+                                                    schemeType = schemeClr.getVal().toString();
+                                                    // 替换掉其中的数字
+                                                    schemeType = schemeType.replaceAll("\\d+",i+"");
+                                                    schemeClr.setVal(STSchemeColorVal.Enum.forString(schemeType));
+                                                }
+                                            }
+                                        }
                                         int firstRow = titleArr != null ? 1 : 0;
                                         int lastRow = titleArr != null ? list.size() : list.size() - 1;
                                         // 添加该系列下的种类对应x轴的数据范围
