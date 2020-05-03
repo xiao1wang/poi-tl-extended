@@ -46,7 +46,7 @@ maven方式
 
 Word中图表的样式
 
-![1584805404102](./images/1584805404102.png)
+![1584805404102](https://github.com/xiao1wang/poi-tl-extended/blob/master/images/1584805404102.png)
 
 ```json
                                     数据模型
